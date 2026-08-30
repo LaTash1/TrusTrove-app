@@ -4,7 +4,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PageLayout } from "@/components/shared/PageLayout";
-import { useInvoice, useInvoices } from "@/hooks/useInvoices";
+import {
+  useInvoice,
+  useShipInvoice,
+  useConfirmDelivery,
+  useRepayInvoice,
+  useDefaultInvoice,
+} from "@/hooks/useInvoices";
 import { useWalletStore } from "@/store/wallet";
 import { InvoiceStatus } from "@/components/invoice/InvoiceStatus";
 import { InvoiceStatusTimeline } from "@/components/invoice/InvoiceStatusTimeline";
@@ -55,8 +61,10 @@ export default function InvoiceDetailClient({
   const { address, connected, role } = useWalletStore();
 
   const { invoice, isLoading, refetch } = useInvoice(invoiceId);
-  const { shipInvoice, confirmDelivery, repayInvoice, defaultInvoice } =
-    useInvoices();
+  const { shipInvoice } = useShipInvoice();
+  const { confirmDelivery } = useConfirmDelivery();
+  const { repayInvoice } = useRepayInvoice();
+  const { defaultInvoice } = useDefaultInvoice();
   const { request: requestConfirmation } = useConfirmDialogStore();
 
   const [submitting, setSubmitting] = useState(false);

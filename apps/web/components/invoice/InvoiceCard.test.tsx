@@ -16,14 +16,12 @@ vi.mock("@/hooks/useProfile", () => ({
 }));
 
 vi.mock("@/hooks/useInvoices", () => ({
-  useInvoices: () => ({
-    listInvoice: vi.fn().mockResolvedValue({}),
-    fundInvoice: vi.fn().mockResolvedValue({}),
-    shipInvoice: vi.fn().mockResolvedValue({}),
-    confirmDelivery: vi.fn().mockResolvedValue({}),
-    repayInvoice: vi.fn().mockResolvedValue({}),
-    defaultInvoice: vi.fn().mockResolvedValue({}),
-  }),
+  useListInvoice: () => ({ listInvoice: vi.fn().mockResolvedValue({}) }),
+  useFundInvoice: () => ({ fundInvoice: vi.fn().mockResolvedValue({}) }),
+  useShipInvoice: () => ({ shipInvoice: vi.fn().mockResolvedValue({}) }),
+  useConfirmDelivery: () => ({ confirmDelivery: vi.fn().mockResolvedValue({}) }),
+  useRepayInvoice: () => ({ repayInvoice: vi.fn().mockResolvedValue({}) }),
+  useDefaultInvoice: () => ({ defaultInvoice: vi.fn().mockResolvedValue({}) }),
 }));
 
 const mockInvoice = {

@@ -2,7 +2,13 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import InvoiceDetailClient from "./InvoiceDetailClient";
-import { useInvoice, useInvoices } from "@/hooks/useInvoices";
+import {
+  useInvoice,
+  useShipInvoice,
+  useConfirmDelivery,
+  useRepayInvoice,
+  useDefaultInvoice,
+} from "@/hooks/useInvoices";
 import { useWalletStore } from "@/store/wallet";
 import { useRouter } from "next/navigation";
 import type { Invoice } from "@/types";
@@ -23,7 +29,10 @@ vi.mock("@/components/shared/PageLayout", () => ({
 
 vi.mock("@/hooks/useInvoices", () => ({
   useInvoice: vi.fn(),
-  useInvoices: vi.fn(),
+  useShipInvoice: vi.fn(),
+  useConfirmDelivery: vi.fn(),
+  useRepayInvoice: vi.fn(),
+  useDefaultInvoice: vi.fn(),
 }));
 
 vi.mock("@/store/wallet", () => ({
@@ -108,10 +117,16 @@ describe("InvoiceDetailClient", () => {
       refetch: mockRefetch,
     } as any);
 
-    vi.mocked(useInvoices).mockReturnValue({
+    vi.mocked(useShipInvoice).mockReturnValue({
       shipInvoice: mockShipInvoice,
+    } as any);
+    vi.mocked(useConfirmDelivery).mockReturnValue({
       confirmDelivery: mockConfirmDelivery,
+    } as any);
+    vi.mocked(useRepayInvoice).mockReturnValue({
       repayInvoice: mockRepayInvoice,
+    } as any);
+    vi.mocked(useDefaultInvoice).mockReturnValue({
       defaultInvoice: mockDefaultInvoice,
     } as any);
 
