@@ -4,7 +4,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { InvoiceCard } from "./InvoiceCard";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
-// Mock the hooks
 vi.mock("@/store/wallet", () => ({
   useWalletStore: vi.fn(() => ({
     address: "GACR43ILX6H4PGAOO5QKSZLU4ZJMGT3E66EAUDPLM5J6YTP4Y3PSHWGB",
@@ -16,12 +15,14 @@ vi.mock("@/hooks/useProfile", () => ({
 }));
 
 vi.mock("@/hooks/useInvoices", () => ({
-  useListInvoice: () => ({ listInvoice: vi.fn().mockResolvedValue({}) }),
-  useFundInvoice: () => ({ fundInvoice: vi.fn().mockResolvedValue({}) }),
-  useShipInvoice: () => ({ shipInvoice: vi.fn().mockResolvedValue({}) }),
-  useConfirmDelivery: () => ({ confirmDelivery: vi.fn().mockResolvedValue({}) }),
-  useRepayInvoice: () => ({ repayInvoice: vi.fn().mockResolvedValue({}) }),
-  useDefaultInvoice: () => ({ defaultInvoice: vi.fn().mockResolvedValue({}) }),
+  useInvoiceActions: () => ({
+    listInvoice: vi.fn().mockResolvedValue({}),
+    fundInvoice: vi.fn().mockResolvedValue({}),
+    shipInvoice: vi.fn().mockResolvedValue({}),
+    confirmDelivery: vi.fn().mockResolvedValue({}),
+    repayInvoice: vi.fn().mockResolvedValue({}),
+    defaultInvoice: vi.fn().mockResolvedValue({}),
+  }),
 }));
 
 const mockInvoice = {

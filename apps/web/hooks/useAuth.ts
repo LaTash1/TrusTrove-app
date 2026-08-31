@@ -36,7 +36,10 @@ const { captureError } = createErrorHandler("useAuth");
  * const { isAuthenticated, login, logout, loading, error } = useAuth();
  */
 export function useAuth() {
-  const { address, token, setToken, disconnect } = useWalletStore();
+  const address = useWalletStore((s) => s.address);
+  const token = useWalletStore((s) => s.token);
+  const setToken = useWalletStore((s) => s.setToken);
+  const disconnect = useWalletStore((s) => s.disconnect);
   const [loading, setLoading] = useState(false);
   const { error, handleError, clearError } = useAppError();
 

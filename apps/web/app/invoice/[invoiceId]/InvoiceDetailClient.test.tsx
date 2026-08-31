@@ -2,13 +2,7 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import InvoiceDetailClient from "./InvoiceDetailClient";
-import {
-  useInvoice,
-  useShipInvoice,
-  useConfirmDelivery,
-  useRepayInvoice,
-  useDefaultInvoice,
-} from "@/hooks/useInvoices";
+import { useInvoice, useInvoiceActions } from "@/hooks/useInvoices";
 import { useWalletStore } from "@/store/wallet";
 import { useRouter } from "next/navigation";
 import type { Invoice } from "@/types";
@@ -29,10 +23,7 @@ vi.mock("@/components/shared/PageLayout", () => ({
 
 vi.mock("@/hooks/useInvoices", () => ({
   useInvoice: vi.fn(),
-  useShipInvoice: vi.fn(),
-  useConfirmDelivery: vi.fn(),
-  useRepayInvoice: vi.fn(),
-  useDefaultInvoice: vi.fn(),
+  useInvoiceActions: vi.fn(),
 }));
 
 vi.mock("@/store/wallet", () => ({
@@ -117,26 +108,23 @@ describe("InvoiceDetailClient", () => {
       refetch: mockRefetch,
     } as any);
 
-    vi.mocked(useShipInvoice).mockReturnValue({
+    vi.mocked(useInvoiceActions).mockReturnValue({
       shipInvoice: mockShipInvoice,
-    } as any);
-    vi.mocked(useConfirmDelivery).mockReturnValue({
       confirmDelivery: mockConfirmDelivery,
-    } as any);
-    vi.mocked(useRepayInvoice).mockReturnValue({
       repayInvoice: mockRepayInvoice,
-    } as any);
-    vi.mocked(useDefaultInvoice).mockReturnValue({
       defaultInvoice: mockDefaultInvoice,
     } as any);
 
-    vi.mocked(useWalletStore).mockReturnValue({
-      address: null,
-      connected: false,
-      network: null,
-      token: null,
-      role: "issuer",
-    } as any);
+    vi.mocked(useWalletStore).mockImplementation(((selector: any) => {
+      const state = {
+        address: null,
+        connected: false,
+        network: null,
+        token: null,
+        role: "issuer",
+      };
+      return selector ? selector(state) : state;
+    }) as any);
   });
 
   it("renders the loading state while the invoice is being fetched", () => {
@@ -211,13 +199,16 @@ describe("InvoiceDetailClient", () => {
   });
 
   it("shows MARK GOODS SHIPPED for a connected issuer on a funded invoice", () => {
-    vi.mocked(useWalletStore).mockReturnValue({
-      address: ISSUER,
-      connected: true,
-      network: "testnet",
-      token: null,
-      role: "issuer",
-    } as any);
+    vi.mocked(useWalletStore).mockImplementation(((selector: any) => {
+      const state = {
+        address: ISSUER,
+        connected: true,
+        network: "testnet",
+        token: null,
+        role: "issuer",
+      };
+      return selector ? selector(state) : state;
+    }) as any);
 
     render(<InvoiceDetailClient invoiceId={INVOICE_ID} />);
 
@@ -236,13 +227,16 @@ describe("InvoiceDetailClient", () => {
       error: null,
       refetch: mockRefetch,
     } as any);
-    vi.mocked(useWalletStore).mockReturnValue({
-      address: BUYER,
-      connected: true,
-      network: "testnet",
-      token: null,
-      role: "buyer",
-    } as any);
+    vi.mocked(useWalletStore).mockImplementation(((selector: any) => {
+      const state = {
+        address: BUYER,
+        connected: true,
+        network: "testnet",
+        token: null,
+        role: "buyer",
+      };
+      return selector ? selector(state) : state;
+    }) as any);
 
     render(<InvoiceDetailClient invoiceId={INVOICE_ID} />);
 
@@ -261,13 +255,16 @@ describe("InvoiceDetailClient", () => {
       error: null,
       refetch: mockRefetch,
     } as any);
-    vi.mocked(useWalletStore).mockReturnValue({
-      address: BUYER,
-      connected: true,
-      network: "testnet",
-      token: null,
-      role: "buyer",
-    } as any);
+    vi.mocked(useWalletStore).mockImplementation(((selector: any) => {
+      const state = {
+        address: BUYER,
+        connected: true,
+        network: "testnet",
+        token: null,
+        role: "buyer",
+      };
+      return selector ? selector(state) : state;
+    }) as any);
 
     render(<InvoiceDetailClient invoiceId={INVOICE_ID} />);
 
@@ -286,13 +283,16 @@ describe("InvoiceDetailClient", () => {
       error: null,
       refetch: mockRefetch,
     } as any);
-    vi.mocked(useWalletStore).mockReturnValue({
-      address: ISSUER,
-      connected: true,
-      network: "testnet",
-      token: null,
-      role: "issuer",
-    } as any);
+    vi.mocked(useWalletStore).mockImplementation(((selector: any) => {
+      const state = {
+        address: ISSUER,
+        connected: true,
+        network: "testnet",
+        token: null,
+        role: "issuer",
+      };
+      return selector ? selector(state) : state;
+    }) as any);
 
     render(<InvoiceDetailClient invoiceId={INVOICE_ID} />);
 
@@ -303,13 +303,16 @@ describe("InvoiceDetailClient", () => {
   });
 
   it("does not show role-gated buttons for the wrong role", () => {
-    vi.mocked(useWalletStore).mockReturnValue({
-      address: BUYER,
-      connected: true,
-      network: "testnet",
-      token: null,
-      role: "buyer",
-    } as any);
+    vi.mocked(useWalletStore).mockImplementation(((selector: any) => {
+      const state = {
+        address: BUYER,
+        connected: true,
+        network: "testnet",
+        token: null,
+        role: "buyer",
+      };
+      return selector ? selector(state) : state;
+    }) as any);
 
     render(<InvoiceDetailClient invoiceId={INVOICE_ID} />);
 
@@ -370,13 +373,16 @@ describe("InvoiceDetailClient", () => {
   });
 
   it("calls shipInvoice and shows the pending modal with the returned tx hash", async () => {
-    vi.mocked(useWalletStore).mockReturnValue({
-      address: ISSUER,
-      connected: true,
-      network: "testnet",
-      token: null,
-      role: "issuer",
-    } as any);
+    vi.mocked(useWalletStore).mockImplementation(((selector: any) => {
+      const state = {
+        address: ISSUER,
+        connected: true,
+        network: "testnet",
+        token: null,
+        role: "issuer",
+      };
+      return selector ? selector(state) : state;
+    }) as any);
 
     render(<InvoiceDetailClient invoiceId={INVOICE_ID} />);
 
@@ -399,13 +405,16 @@ describe("InvoiceDetailClient", () => {
 
   it("shows the error message and closes the pending modal when an action fails", async () => {
     mockShipInvoice.mockRejectedValue(new Error("Ship failed"));
-    vi.mocked(useWalletStore).mockReturnValue({
-      address: ISSUER,
-      connected: true,
-      network: "testnet",
-      token: null,
-      role: "issuer",
-    } as any);
+    vi.mocked(useWalletStore).mockImplementation(((selector: any) => {
+      const state = {
+        address: ISSUER,
+        connected: true,
+        network: "testnet",
+        token: null,
+        role: "issuer",
+      };
+      return selector ? selector(state) : state;
+    }) as any);
 
     render(<InvoiceDetailClient invoiceId={INVOICE_ID} />);
 

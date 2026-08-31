@@ -4,13 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PageLayout } from "@/components/shared/PageLayout";
-import {
-  useInvoice,
-  useShipInvoice,
-  useConfirmDelivery,
-  useRepayInvoice,
-  useDefaultInvoice,
-} from "@/hooks/useInvoices";
+import { useInvoice, useInvoiceActions } from "@/hooks/useInvoices";
 import { useWalletStore } from "@/store/wallet";
 import { InvoiceStatus } from "@/components/invoice/InvoiceStatus";
 import { InvoiceStatusTimeline } from "@/components/invoice/InvoiceStatusTimeline";
@@ -58,13 +52,12 @@ export default function InvoiceDetailClient({
   invoiceId,
 }: InvoiceDetailClientProps) {
   const router = useRouter();
-  const { address, connected, role } = useWalletStore();
+  const connected = useWalletStore((s) => s.connected);
+  const role = useWalletStore((s) => s.role);
 
   const { invoice, isLoading, refetch } = useInvoice(invoiceId);
-  const { shipInvoice } = useShipInvoice();
-  const { confirmDelivery } = useConfirmDelivery();
-  const { repayInvoice } = useRepayInvoice();
-  const { defaultInvoice } = useDefaultInvoice();
+  const { shipInvoice, confirmDelivery, repayInvoice, defaultInvoice } =
+    useInvoiceActions();
   const { request: requestConfirmation } = useConfirmDialogStore();
 
   const [submitting, setSubmitting] = useState(false);
@@ -85,11 +78,6 @@ export default function InvoiceDetailClient({
       setInvoiceUrl(window.location.href);
     }
   }, []);
-
-  const formatAddress = (addr: string) => {
-    if (!addr) return "";
-    return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-  };
 
   const copyToClipboard = async (
     text: string,

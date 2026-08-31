@@ -54,10 +54,40 @@ export function useInvoicesList(filters?: {
   };
 }
 
-export function useCreateInvoice() {
-  const queryClient = useQueryClient();
+export function useInvoiceList(filters?: {
+  status?: string;
+  issuer?: string;
+  page?: number;
+  limit?: number;
+}) {
+  return useInvoicesList(filters);
+}
 
-  const mutation = useMutation({
+export function useInvoiceActions() {
+  const queryClient = useQueryClient();
+  const address = useWalletStore((s) => s.address);
+  const { ensureAllowance } = useTokenAllowance();
+
+  const invoiceClientRef = useRef<InvoiceClient | null>(null);
+  const poolClientRef = useRef<PoolClient | null>(null);
+
+  const getInvoiceClient = useCallback(async () => {
+    if (!invoiceClientRef.current) {
+      const { InvoiceClient } = await import("@trusttrove/sdk");
+      invoiceClientRef.current = new InvoiceClient(invoiceContractID);
+    }
+    return invoiceClientRef.current;
+  }, []);
+
+  const getPoolClient = useCallback(async () => {
+    if (!poolClientRef.current) {
+      const { PoolClient } = await import("@trusttrove/sdk");
+      poolClientRef.current = new PoolClient(poolContractID);
+    }
+    return poolClientRef.current;
+  }, []);
+
+  const createInvoiceMutation = useMutation({
     mutationFn: async ({
       buyer,
       faceValue,
@@ -72,7 +102,7 @@ export function useCreateInvoice() {
       return createInvoice(buyer, faceValue, dueDate, asset);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      invalidateInvoiceQueries(queryClient, address);
       showSuccessToast("Invoice Created");
     },
     onError: (error) => {
@@ -80,27 +110,7 @@ export function useCreateInvoice() {
     },
   });
 
-  return {
-    createInvoice: mutation.mutateAsync,
-    isCreating: mutation.isPending,
-    createError: mutation.error,
-  };
-}
-
-export function useListInvoice() {
-  const queryClient = useQueryClient();
-  const { address } = useWalletStore();
-  const invoiceClientRef = useRef<InvoiceClient | null>(null);
-
-  const getInvoiceClient = useCallback(async () => {
-    if (!invoiceClientRef.current) {
-      const { InvoiceClient } = await import("@trusttrove/sdk");
-      invoiceClientRef.current = new InvoiceClient(invoiceContractID);
-    }
-    return invoiceClientRef.current;
-  }, []);
-
-  const mutation = useMutation({
+  const listInvoiceMutation = useMutation({
     mutationFn: async ({
       invoiceId,
       discountBps,
@@ -121,27 +131,7 @@ export function useListInvoice() {
     },
   });
 
-  return {
-    listInvoice: mutation.mutateAsync,
-    isListing: mutation.isPending,
-    listError: mutation.error,
-  };
-}
-
-export function useFundInvoice() {
-  const queryClient = useQueryClient();
-  const { address } = useWalletStore();
-  const poolClientRef = useRef<PoolClient | null>(null);
-
-  const getPoolClient = useCallback(async () => {
-    if (!poolClientRef.current) {
-      const { PoolClient } = await import("@trusttrove/sdk");
-      poolClientRef.current = new PoolClient(poolContractID);
-    }
-    return poolClientRef.current;
-  }, []);
-
-  const mutation = useMutation({
+  const fundInvoiceMutation = useMutation({
     mutationFn: async ({ invoiceId }: { invoiceId: string }) => {
       if (!address) throw new Error("Wallet not connected");
       const client = await getPoolClient();
@@ -156,27 +146,7 @@ export function useFundInvoice() {
     },
   });
 
-  return {
-    fundInvoice: mutation.mutateAsync,
-    isFunding: mutation.isPending,
-    fundError: mutation.error,
-  };
-}
-
-export function useShipInvoice() {
-  const queryClient = useQueryClient();
-  const { address } = useWalletStore();
-  const invoiceClientRef = useRef<InvoiceClient | null>(null);
-
-  const getInvoiceClient = useCallback(async () => {
-    if (!invoiceClientRef.current) {
-      const { InvoiceClient } = await import("@trusttrove/sdk");
-      invoiceClientRef.current = new InvoiceClient(invoiceContractID);
-    }
-    return invoiceClientRef.current;
-  }, []);
-
-  const mutation = useMutation({
+  const shipInvoiceMutation = useMutation({
     mutationFn: async ({ invoiceId }: { invoiceId: string }) => {
       if (!address) throw new Error("Wallet not connected");
       const client = await getInvoiceClient();
@@ -191,27 +161,7 @@ export function useShipInvoice() {
     },
   });
 
-  return {
-    shipInvoice: mutation.mutateAsync,
-    isShipping: mutation.isPending,
-    shipError: mutation.error,
-  };
-}
-
-export function useConfirmDelivery() {
-  const queryClient = useQueryClient();
-  const { address } = useWalletStore();
-  const invoiceClientRef = useRef<InvoiceClient | null>(null);
-
-  const getInvoiceClient = useCallback(async () => {
-    if (!invoiceClientRef.current) {
-      const { InvoiceClient } = await import("@trusttrove/sdk");
-      invoiceClientRef.current = new InvoiceClient(invoiceContractID);
-    }
-    return invoiceClientRef.current;
-  }, []);
-
-  const mutation = useMutation({
+  const confirmDeliveryMutation = useMutation({
     mutationFn: async ({ invoiceId }: { invoiceId: string }) => {
       if (!address) throw new Error("Wallet not connected");
       const invoice = await getInvoiceByID(invoiceId);
@@ -227,28 +177,7 @@ export function useConfirmDelivery() {
     },
   });
 
-  return {
-    confirmDelivery: mutation.mutateAsync,
-    isConfirming: mutation.isPending,
-    confirmError: mutation.error,
-  };
-}
-
-export function useRepayInvoice() {
-  const queryClient = useQueryClient();
-  const { address } = useWalletStore();
-  const { ensureAllowance } = useTokenAllowance();
-  const invoiceClientRef = useRef<InvoiceClient | null>(null);
-
-  const getInvoiceClient = useCallback(async () => {
-    if (!invoiceClientRef.current) {
-      const { InvoiceClient } = await import("@trusttrove/sdk");
-      invoiceClientRef.current = new InvoiceClient(invoiceContractID);
-    }
-    return invoiceClientRef.current;
-  }, []);
-
-  const mutation = useMutation({
+  const repayInvoiceMutation = useMutation({
     mutationFn: async ({ invoiceId }: { invoiceId: string }) => {
       if (!address) throw new Error("Wallet not connected");
       const client = await getInvoiceClient();
@@ -279,27 +208,7 @@ export function useRepayInvoice() {
     },
   });
 
-  return {
-    repayInvoice: mutation.mutateAsync,
-    isRepaying: mutation.isPending,
-    repayError: mutation.error,
-  };
-}
-
-export function useDefaultInvoice() {
-  const queryClient = useQueryClient();
-  const { address } = useWalletStore();
-  const invoiceClientRef = useRef<InvoiceClient | null>(null);
-
-  const getInvoiceClient = useCallback(async () => {
-    if (!invoiceClientRef.current) {
-      const { InvoiceClient } = await import("@trusttrove/sdk");
-      invoiceClientRef.current = new InvoiceClient(invoiceContractID);
-    }
-    return invoiceClientRef.current;
-  }, []);
-
-  const mutation = useMutation({
+  const defaultInvoiceMutation = useMutation({
     mutationFn: async ({ invoiceId }: { invoiceId: string }) => {
       if (!address) throw new Error("Wallet not connected");
       const client = await getInvoiceClient();
@@ -315,18 +224,93 @@ export function useDefaultInvoice() {
   });
 
   return {
-    defaultInvoice: mutation.mutateAsync,
-    isDefaulting: mutation.isPending,
-    defaultError: mutation.error,
+    createInvoice: createInvoiceMutation.mutateAsync,
+    isCreating: createInvoiceMutation.isPending,
+    createError: createInvoiceMutation.error,
+    listInvoice: listInvoiceMutation.mutateAsync,
+    isListing: listInvoiceMutation.isPending,
+    listError: listInvoiceMutation.error,
+    fundInvoice: fundInvoiceMutation.mutateAsync,
+    isFunding: fundInvoiceMutation.isPending,
+    fundError: fundInvoiceMutation.error,
+    shipInvoice: shipInvoiceMutation.mutateAsync,
+    isShipping: shipInvoiceMutation.isPending,
+    shipError: shipInvoiceMutation.error,
+    confirmDelivery: confirmDeliveryMutation.mutateAsync,
+    isConfirming: confirmDeliveryMutation.isPending,
+    confirmError: confirmDeliveryMutation.error,
+    repayInvoice: repayInvoiceMutation.mutateAsync,
+    isRepaying: repayInvoiceMutation.isPending,
+    repayError: repayInvoiceMutation.error,
+    defaultInvoice: defaultInvoiceMutation.mutateAsync,
+    isDefaulting: defaultInvoiceMutation.isPending,
+    defaultError: defaultInvoiceMutation.error,
   };
 }
 
-/**
- * Custom hook for managing invoice lifecycle operations on the TrusTrove platform.
- *
- * This is kept as a compatibility aggregate around the per-action hooks so
- * existing pages and tests continue to receive the original combined surface.
- */
+export function useCreateInvoice() {
+  const actions = useInvoiceActions();
+  return {
+    createInvoice: actions.createInvoice,
+    isCreating: actions.isCreating,
+    createError: actions.createError,
+  };
+}
+
+export function useListInvoice() {
+  const actions = useInvoiceActions();
+  return {
+    listInvoice: actions.listInvoice,
+    isListing: actions.isListing,
+    listError: actions.listError,
+  };
+}
+
+export function useFundInvoice() {
+  const actions = useInvoiceActions();
+  return {
+    fundInvoice: actions.fundInvoice,
+    isFunding: actions.isFunding,
+    fundError: actions.fundError,
+  };
+}
+
+export function useShipInvoice() {
+  const actions = useInvoiceActions();
+  return {
+    shipInvoice: actions.shipInvoice,
+    isShipping: actions.isShipping,
+    shipError: actions.shipError,
+  };
+}
+
+export function useConfirmDelivery() {
+  const actions = useInvoiceActions();
+  return {
+    confirmDelivery: actions.confirmDelivery,
+    isConfirming: actions.isConfirming,
+    confirmError: actions.confirmError,
+  };
+}
+
+export function useRepayInvoice() {
+  const actions = useInvoiceActions();
+  return {
+    repayInvoice: actions.repayInvoice,
+    isRepaying: actions.isRepaying,
+    repayError: actions.repayError,
+  };
+}
+
+export function useDefaultInvoice() {
+  const actions = useInvoiceActions();
+  return {
+    defaultInvoice: actions.defaultInvoice,
+    isDefaulting: actions.isDefaulting,
+    defaultError: actions.defaultError,
+  };
+}
+
 export function useInvoices(filters?: {
   status?: string;
   issuer?: string;
@@ -334,46 +318,34 @@ export function useInvoices(filters?: {
   limit?: number;
 }) {
   const list = useInvoicesList(filters);
-  const create = useCreateInvoice();
-  const listInvoice = useListInvoice();
-  const fund = useFundInvoice();
-  const ship = useShipInvoice();
-  const confirm = useConfirmDelivery();
-  const repay = useRepayInvoice();
-  const defaultInvoice = useDefaultInvoice();
+  const actions = useInvoiceActions();
 
   return {
     ...list,
-    createInvoice: create.createInvoice,
-    isCreating: create.isCreating,
-    createError: create.createError,
-    listInvoice: listInvoice.listInvoice,
-    isListing: listInvoice.isListing,
-    listError: listInvoice.listError,
-    fundInvoice: fund.fundInvoice,
-    isFunding: fund.isFunding,
-    fundError: fund.fundError,
-    shipInvoice: ship.shipInvoice,
-    isShipping: ship.isShipping,
-    shipError: ship.shipError,
-    confirmDelivery: confirm.confirmDelivery,
-    isConfirming: confirm.isConfirming,
-    confirmError: confirm.confirmError,
-    repayInvoice: repay.repayInvoice,
-    isRepaying: repay.isRepaying,
-    repayError: repay.repayError,
-    defaultInvoice: defaultInvoice.defaultInvoice,
-    isDefaulting: defaultInvoice.isDefaulting,
-    defaultError: defaultInvoice.defaultError,
+    createInvoice: actions.createInvoice,
+    isCreating: actions.isCreating,
+    createError: actions.createError,
+    listInvoice: actions.listInvoice,
+    isListing: actions.isListing,
+    listError: actions.listError,
+    fundInvoice: actions.fundInvoice,
+    isFunding: actions.isFunding,
+    fundError: actions.fundError,
+    shipInvoice: actions.shipInvoice,
+    isShipping: actions.isShipping,
+    shipError: actions.shipError,
+    confirmDelivery: actions.confirmDelivery,
+    isConfirming: actions.isConfirming,
+    confirmError: actions.confirmError,
+    repayInvoice: actions.repayInvoice,
+    isRepaying: actions.isRepaying,
+    repayError: actions.repayError,
+    defaultInvoice: actions.defaultInvoice,
+    isDefaulting: actions.isDefaulting,
+    defaultError: actions.defaultError,
   };
 }
 
-/**
- * Custom hook for fetching a single invoice by its ID.
- *
- * @param id - The unique identifier of the invoice to fetch. The query is
- *   skipped (disabled) when `id` is an empty string.
- */
 export function useInvoice(id: string) {
   const invoiceQuery = useQuery({
     queryKey: ["invoice", id],

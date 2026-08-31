@@ -27,7 +27,7 @@ interface DepositArguments {
  */
 export function usePool() {
   const queryClient = useQueryClient();
-  const { address } = useWalletStore();
+  const address = useWalletStore((s) => s.address);
   const { ensureAllowance } = useTokenAllowance();
   const { error: appError, handleError, clearError } = useAppError();
 
