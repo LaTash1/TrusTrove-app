@@ -16,7 +16,7 @@ vi.mock("@/hooks/useProfile", () => ({
 }));
 
 vi.mock("@/hooks/useInvoices", () => ({
-  useInvoices: () => ({
+  useInvoiceActions: () => ({
     listInvoice: vi.fn().mockResolvedValue({}),
     fundInvoice: vi.fn().mockResolvedValue({}),
     shipInvoice: vi.fn().mockResolvedValue({}),

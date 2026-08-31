@@ -59,14 +59,34 @@ const poolContractID = process.env.NEXT_PUBLIC_POOL_CONTRACT_ID || "";
  * @example
  * const { invoices, total, totalPages, page } = useInvoices({ status: 'pending', page: 2, limit: 10 });
  */
-export function useInvoices(filters?: {
+export function useInvoiceList(filters?: {
   status?: string;
   issuer?: string;
   page?: number;
   limit?: number;
 }) {
+  const invoicesQuery = useQuery<PaginatedInvoices>({
+    queryKey: ["invoices", filters],
+    queryFn: () => getInvoices(filters),
+    refetchInterval: 15000,
+    staleTime: 15000,
+  });
+
+  return {
+    invoices: invoicesQuery.data?.data ?? [],
+    total: invoicesQuery.data?.total ?? 0,
+    totalPages: invoicesQuery.data?.totalPages ?? 1,
+    page: invoicesQuery.data?.page ?? filters?.page ?? 1,
+    limit: invoicesQuery.data?.limit ?? filters?.limit ?? 20,
+    isLoading: invoicesQuery.isLoading,
+    error: invoicesQuery.error,
+    refetch: invoicesQuery.refetch,
+  };
+}
+
+export function useInvoiceActions() {
   const queryClient = useQueryClient();
-  const { address } = useWalletStore();
+  const address = useWalletStore((s) => s.address);
   const { ensureAllowance } = useTokenAllowance();
 
   const invoiceClientRef = useRef<InvoiceClient | null>(null);
@@ -87,13 +107,6 @@ export function useInvoices(filters?: {
     }
     return poolClientRef.current;
   }, []);
-
-  const invoicesQuery = useQuery<PaginatedInvoices>({
-    queryKey: ["invoices", filters],
-    queryFn: () => getInvoices(filters),
-    refetchInterval: 15000,
-    staleTime: 15000,
-  });
 
   const createInvoiceMutation = useMutation({
     mutationFn: async ({
@@ -238,15 +251,6 @@ export function useInvoices(filters?: {
   });
 
   return {
-    invoices: invoicesQuery.data?.data ?? [],
-    total: invoicesQuery.data?.total ?? 0,
-    totalPages: invoicesQuery.data?.totalPages ?? 1,
-    page: invoicesQuery.data?.page ?? filters?.page ?? 1,
-    limit: invoicesQuery.data?.limit ?? filters?.limit ?? 20,
-    isLoading: invoicesQuery.isLoading,
-    error: invoicesQuery.error,
-    refetch: invoicesQuery.refetch,
-
     createInvoice: createInvoiceMutation.mutateAsync,
     isCreating: createInvoiceMutation.isPending,
     createError: createInvoiceMutation.error,

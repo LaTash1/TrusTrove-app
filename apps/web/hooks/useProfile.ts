@@ -63,7 +63,7 @@ function isProfileNotFoundError(error: unknown): boolean {
  */
 export function useProfile() {
   const queryClient = useQueryClient();
-  const { address } = useWalletStore();
+  const address = useWalletStore((s) => s.address);
   const { error: appError, handleError, clearError } = useAppError();
 
   const profileQuery = useQuery({

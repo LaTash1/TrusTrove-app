@@ -40,7 +40,20 @@ class ApiClient {
 
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(text || `HTTP error! status: ${res.status}`);
+      let errorMessage = text;
+      try {
+        const json = JSON.parse(text);
+        if (json && typeof json === "object") {
+          if ("error" in json && typeof json.error === "string") {
+            errorMessage = json.error;
+          } else if ("message" in json && typeof json.message === "string") {
+            errorMessage = json.message;
+          }
+        }
+      } catch {
+        // Not JSON
+      }
+      throw new Error(errorMessage || `HTTP error! status: ${res.status}`);
     }
 
     return res.json() as Promise<T>;
@@ -109,7 +122,20 @@ export async function apiFetch<T>(
         text || "Service Temporarily Unavailable. Please try again later.",
       );
     }
-    throw new Error(text || `HTTP error! status: ${res.status}`);
+    let errorMessage = text;
+    try {
+      const json = JSON.parse(text);
+      if (json && typeof json === "object") {
+        if ("error" in json && typeof json.error === "string") {
+          errorMessage = json.error;
+        } else if ("message" in json && typeof json.message === "string") {
+          errorMessage = json.message;
+        }
+      }
+    } catch {
+      // Not JSON
+    }
+    throw new Error(errorMessage || `HTTP error! status: ${res.status}`);
   }
 
   return res.json() as Promise<T>;
