@@ -251,18 +251,19 @@ export async function createInvoice(
   dueDate: number,
   asset: AssetType = "USDC",
 ): Promise<{ invoice_id: string; transaction_hash: string; status: string }> {
-  return apiFetch<{ invoice_id: string; transaction_hash: string; status: string }>(
-    "/invoices",
-    {
-      method: "POST",
-      body: JSON.stringify({
-        buyer,
-        face_value: faceValue,
-        due_date: dueDate,
-        asset,
-      }),
-    },
-  );
+  return apiFetch<{
+    invoice_id: string;
+    transaction_hash: string;
+    status: string;
+  }>("/invoices", {
+    method: "POST",
+    body: JSON.stringify({
+      buyer,
+      face_value: faceValue,
+      due_date: dueDate,
+      asset,
+    }),
+  });
 }
 
 /**

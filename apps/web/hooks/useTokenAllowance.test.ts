@@ -52,7 +52,9 @@ describe("useTokenAllowance", () => {
 
     const mockAllowance = vi.fn().mockResolvedValue(50n);
     const mockApprove = vi.fn().mockResolvedValue(undefined);
-    const mockServer = { getLatestLedger: vi.fn().mockResolvedValue({ sequence: 1000 }) };
+    const mockServer = {
+      getLatestLedger: vi.fn().mockResolvedValue({ sequence: 1000 }),
+    };
     vi.mocked(TokenClient.forUSDC).mockReturnValue({
       allowance: mockAllowance,
       approve: mockApprove,
@@ -77,7 +79,9 @@ describe("useTokenAllowance", () => {
   it("propagates allowance and approval errors", async () => {
     useWalletStore.getState().connect("GTEST", "testnet");
 
-    const mockAllowance = vi.fn().mockRejectedValue(new Error("allowance failed"));
+    const mockAllowance = vi
+      .fn()
+      .mockRejectedValue(new Error("allowance failed"));
     const mockApprove = vi.fn().mockRejectedValue(new Error("approve failed"));
     vi.mocked(TokenClient.forUSDC).mockReturnValue({
       allowance: mockAllowance,
